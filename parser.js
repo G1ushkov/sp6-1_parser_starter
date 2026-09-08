@@ -55,13 +55,16 @@ function parsePage() {
         .slice(1)
     );
 
-    const oldPrice = parseInt(sectionProduct
-        .querySelector('.price')
-        .children[0]
-        .textContent
-        .trim()
-        .slice(1)
-    );
+    const oldPriceElement = sectionProduct.querySelector('.price span');
+
+    let oldPrice;
+
+    if (oldPriceElement === null) {
+        oldPrice = price;
+    } else {
+        oldPrice = parseInt(oldPriceElement.textContent.trim().slice(1));
+    }
+
 
     const discount = oldPrice - price;
 
@@ -102,6 +105,42 @@ function parsePage() {
     });
     const description = descriptionClone.innerHTML.trim();
 
+    const productImages = sectionProduct.querySelectorAll('.preview nav img');
+
+    const images = [];
+
+    for (const image of productImages) {
+        const full = image.dataset.src;
+        const preview = image.getAttribute('src');
+        const alt = image.getAttribute('alt');
+
+        const imageObject = {
+            preview: preview,
+            full: full,
+            alt: alt,
+        }
+
+        images.push(imageObject);
+    }
+
+    const productTags = sectionProduct.querySelectorAll('.tags span');
+
+    const tags = {
+        category: [],
+        discount: [],
+        label: []
+    };
+
+    for (const tag of productTags) {
+        if (tag.classList.contains('green')) {
+            tags.category.push(tag.textContent.trim());
+        } else if (tag.classList.contains('blue')) {
+            tags.label.push(tag.textContent.trim());
+        } else if (tag.classList.contains('red')) {
+            tags.discount.push(tag.textContent.trim());
+        }
+    }
+
     // Suggested products
 
     // Reviews
@@ -114,7 +153,20 @@ function parsePage() {
             language: pageLanguage,
             opengraph: opengraph,
         },
-        product: {},
+        product: {
+            id: productId,
+            name: productName,
+            isLiked: buttonLikeStatus,
+            tags: tags,
+            price: price,
+            oldPrice: oldPrice,
+            discount: discount,
+            discountPercent: discountPercent,
+            currency: currency,
+            properties: properties,
+            description: description,
+            images: images
+        },
         suggested: [],
         reviews: []
     };
