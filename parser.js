@@ -143,7 +143,59 @@ function parsePage() {
 
     // Suggested products
 
+    const suggestedProducts = document.querySelectorAll('.suggested article');
+
+    const suggested = [];
+
+    for (const suggestedItem of suggestedProducts) {
+        const name = suggestedItem.querySelector('h3').textContent.trim();
+        const description = suggestedItem.querySelector('p').textContent.trim();
+        const image = suggestedItem.querySelector('img').getAttribute('src');
+        const suggestedPrice = suggestedItem.querySelector('b').textContent.trim();
+        const currencySymbol = suggestedPrice.slice(0, 1);
+        const currency = currencyMap[currencySymbol];
+        const price = suggestedPrice.slice(1);
+
+        const suggestedObject = {
+            name: name,
+            description: description,
+            image: image,
+            currency: currency,
+            price: price
+        }
+
+        suggested.push(suggestedObject);
+    }
+
     // Reviews
+
+    const reviewItems = document.querySelectorAll('.reviews article');
+
+    const reviews = [];
+
+    for (const reviewItem of reviewItems) {
+        const title = reviewItem.querySelector('.title').textContent.trim();
+        const description = reviewItem.querySelector('p').textContent.trim();
+        const author = reviewItem.querySelector('.author');
+        const avatar = author.querySelector('img').getAttribute('src');
+        const name = author.querySelector('span').textContent.trim();
+        const date = author.querySelector('i').textContent.trim().split('/').join('.');
+        const rating = reviewItem.querySelectorAll('.filled').length;
+
+        const reviewObject = {
+            rating: rating,
+                author: {
+            avatar: avatar,
+                name: name
+        },
+            title: title,
+                description: description,
+            date: date
+        }
+
+        reviews.push(reviewObject);
+    }
+
 
     return {
         meta: {
@@ -167,8 +219,8 @@ function parsePage() {
             description: description,
             images: images
         },
-        suggested: [],
-        reviews: []
+        suggested: suggested,
+        reviews: reviews
     };
 }
 
