@@ -1,9 +1,12 @@
-// @todo: напишите здесь код парсера
+const currencyMap = {
+    '₽': 'RUB',
+    '$': 'USD',
+    '€': 'EUR'
+};
 
-function parsePage() {
+// Meta
 
-    // Meta
-
+function parseMeta() {
     const pageTitle = document.querySelector('title');
     const title = pageTitle.textContent.split('—')[0].trim();
 
@@ -33,9 +36,19 @@ function parsePage() {
         opengraph[key] = value;
     });
 
-    // Product
+    return {
+        title: title,
+        description: metaDescriptionContent,
+        keywords: metaKeywordsContent,
+        language: pageLanguage,
+        opengraph: opengraph,
+    }
+}
 
-    const sectionProduct = document.querySelector('section.product');
+// Product
+
+function parseProduct(sectionProduct) {
+
     const productId = sectionProduct.dataset.id;
 
     const productName = sectionProduct
@@ -76,12 +89,6 @@ function parsePage() {
         .textContent
         .trim()
         .slice(0, 1);
-
-    const currencyMap = {
-        '₽': 'RUB',
-        '$': 'USD',
-        '€': 'EUR'
-    };
 
     const currency = currencyMap[currencySymbol];
 
@@ -141,10 +148,25 @@ function parsePage() {
         }
     }
 
-    // Suggested products
+    return {
+        id: productId,
+        name: productName,
+        isLiked: buttonLikeStatus,
+        tags: tags,
+        price: price,
+        oldPrice: oldPrice,
+        discount: discount,
+        discountPercent: discountPercent,
+        currency: currency,
+        properties: properties,
+        description: description,
+        images: images
+    }
+}
 
-    const suggestedProducts = document.querySelectorAll('.suggested article');
+// Suggested products
 
+function parseSuggested(suggestedProducts) {
     const suggested = [];
 
     for (const suggestedItem of suggestedProducts) {
@@ -167,10 +189,12 @@ function parsePage() {
         suggested.push(suggestedObject);
     }
 
-    // Reviews
+    return suggested;
+}
 
-    const reviewItems = document.querySelectorAll('.reviews article');
+// Reviews
 
+function parseReviews(reviewItems) {
     const reviews = [];
 
     for (const reviewItem of reviewItems) {
@@ -184,43 +208,46 @@ function parsePage() {
 
         const reviewObject = {
             rating: rating,
-                author: {
-            avatar: avatar,
+            author: {
+                avatar: avatar,
                 name: name
-        },
+            },
             title: title,
-                description: description,
+            description: description,
             date: date
         }
 
         reviews.push(reviewObject);
     }
 
+    return reviews;
+}
+
+function parsePage() {
+
+    // Meta
+    const meta = parseMeta();
+
+    // Product
+    const sectionProduct = document.querySelector('section.product');
+    const product = parseProduct(sectionProduct);
+
+    // Suggested products
+
+    const suggestedProducts = document.querySelectorAll('.suggested article');
+    const suggested = parseSuggested(suggestedProducts);
+
+    // Reviews
+
+    const reviewItems = document.querySelectorAll('.reviews article');
+    const reviews = parseReviews(reviewItems);
+
 
     return {
-        meta: {
-            title: title,
-            description: metaDescriptionContent,
-            keywords: metaKeywordsContent,
-            language: pageLanguage,
-            opengraph: opengraph,
-        },
-        product: {
-            id: productId,
-            name: productName,
-            isLiked: buttonLikeStatus,
-            tags: tags,
-            price: price,
-            oldPrice: oldPrice,
-            discount: discount,
-            discountPercent: discountPercent,
-            currency: currency,
-            properties: properties,
-            description: description,
-            images: images
-        },
-        suggested: suggested,
-        reviews: reviews
+        meta,
+        product,
+        suggested,
+        reviews
     };
 }
 
