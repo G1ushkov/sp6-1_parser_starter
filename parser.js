@@ -45,55 +45,43 @@ function parseMeta() {
     }
 }
 
-// Product
+// Product price
 
-function parseProduct(sectionProduct) {
+function parsePrice(priceElement) {
+    const price = parseInt(
+        priceElement.childNodes[0].textContent.trim().slice(1));
 
-    const productId = sectionProduct.dataset.id;
-
-    const productName = sectionProduct
-        .querySelector('.title')
-        .textContent
-        .trim();
-
-    const buttonLikeStatus = sectionProduct
-        .querySelector('.like')
-        .classList.contains('active');
-
-    const price = parseInt(sectionProduct
-        .querySelector('.price')
-        .childNodes[0]
-        .textContent
-        .trim()
-        .slice(1)
-    );
-
-    const oldPriceElement = sectionProduct.querySelector('.price span');
+    const oldPriceElement = priceElement.querySelector('span');
 
     let oldPrice;
-
     if (oldPriceElement === null) {
         oldPrice = price;
     } else {
         oldPrice = parseInt(oldPriceElement.textContent.trim().slice(1));
     }
 
-
     const discount = oldPrice - price;
-
     const discountPercent = `${(discount / oldPrice * 100).toFixed(2)}%`;
 
-    const currencySymbol = sectionProduct
-        .querySelector('.price')
+    const currencySymbol = priceElement
         .childNodes[0]
         .textContent
         .trim()
         .slice(0, 1);
-
     const currency = currencyMap[currencySymbol];
 
-    const productProperties = sectionProduct.querySelectorAll('.properties li');
+    return {
+        price,
+        oldPrice,
+        discount,
+        discountPercent,
+        currency
+    }
+}
 
+// Product properties
+
+function parseProperties(productProperties) {
     const properties = {};
 
     productProperties.forEach(property => {
@@ -103,17 +91,28 @@ function parseProduct(sectionProduct) {
         properties[key] = value;
     });
 
-    const productDescription = sectionProduct.querySelector('.description');
+    return properties;
+}
+
+// Product description
+
+function parseDescription(productDescription) {
     const descriptionClone = productDescription.cloneNode(true);
+
     descriptionClone.querySelectorAll('*').forEach((element) => {
         for (const attribute of element.attributes) {
             element.removeAttribute(attribute.name);
         }
     });
+
     const description = descriptionClone.innerHTML.trim();
 
-    const productImages = sectionProduct.querySelectorAll('.preview nav img');
+    return description;
+}
 
+// Product images
+
+function parseImages(productImages) {
     const images = [];
 
     for (const image of productImages) {
@@ -130,8 +129,12 @@ function parseProduct(sectionProduct) {
         images.push(imageObject);
     }
 
-    const productTags = sectionProduct.querySelectorAll('.tags span');
+    return images;
+}
 
+// Product tags
+
+function parseTags(productTags) {
     const tags = {
         category: [],
         discount: [],
@@ -147,6 +150,54 @@ function parseProduct(sectionProduct) {
             tags.discount.push(tag.textContent.trim());
         }
     }
+
+    return tags;
+}
+
+// Product
+
+function parseProduct(sectionProduct) {
+
+    const productId = sectionProduct.dataset.id;
+
+    const productName = sectionProduct
+        .querySelector('.title')
+        .textContent
+        .trim();
+
+    const buttonLikeStatus = sectionProduct
+        .querySelector('.like')
+        .classList.contains('active');
+
+    // price
+
+    const priceElement = sectionProduct.querySelector('.price');
+    const priceData = parsePrice(priceElement);
+    const price = priceData.price;
+    const oldPrice = priceData.oldPrice;
+    const discount = priceData.discount;
+    const discountPercent = priceData.discountPercent;
+    const currency = priceData.currency;
+
+    // properties
+
+    const productProperties = sectionProduct.querySelectorAll('.properties li');
+    const properties = parseProperties(productProperties);
+
+    // description
+
+    const productDescription = sectionProduct.querySelector('.description');
+    const description = parseDescription(productDescription);
+
+    // images
+
+    const productImages = sectionProduct.querySelectorAll('.preview nav img');
+    const images = parseImages(productImages);
+
+    // tags
+
+    const productTags = sectionProduct.querySelectorAll('.tags span');
+    const tags = parseTags(productTags);
 
     return {
         id: productId,
